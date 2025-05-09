@@ -1,0 +1,32 @@
+{
+  "subheading": "DQ Metric",
+  "questions": [
+    {
+      "id": 0,
+      "question": "How would you rate the overall completeness of your data?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 1,
+      "question": "On a scale of 1 to 5, how accurate is the data source in terms of reflecting the correct information?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 2,
+      "question": "How would you rate the consistency of your data across multiple platforms?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 3,
+      "question": "What is the data accuracy score of your current dataset?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 4,
+      "question": "On a scale from 1 to 5, how would you rate the completeness of data over time?",
+      "options": [1, 2, 3, 4, 5]
+    }
+  ]
+}
+
+  

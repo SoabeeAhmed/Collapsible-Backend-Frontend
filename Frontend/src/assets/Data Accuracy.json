@@ -1,0 +1,30 @@
+{
+  "subheading": "Data Accuracy",
+  "questions": [
+    {
+      "id": 0,
+      "question": "How accurate is your data in reflecting real-world values?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 1,
+      "question": "What is the degree of data accuracy based on your last data validation process?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 2,
+      "question": "On a scale of 1 to 5, how often do data discrepancies occur in your system?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 3,
+      "question": "How would you rate the overall accuracy of your data?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 4,
+      "question": "Based on your data review, how accurate are the data inputs from various sources?",
+      "options": [1, 2, 3, 4, 5]
+    }
+  ]
+}
