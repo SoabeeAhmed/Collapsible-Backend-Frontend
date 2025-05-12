@@ -1,0 +1,34 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Node.js dependencies
+node_modules/
+
+# Yarn PnP files (if you're using Yarn Plug'n'Play)
+.pnp/
+.pnp.js
+
+# Testing
+/coverage
+
+# Production build
+/build
+
+# Miscellaneous system files
+.DS_Store
+Thumbs.db
+
+# Environment variable files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug and error logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE/editor specific files (e.g. VS Code, IntelliJ)
+.vscode/
+.idea/
+*.swp

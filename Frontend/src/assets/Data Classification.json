@@ -1,0 +1,30 @@
+{
+  "subheading": "Data Classification",
+  "questions": [
+    {
+      "id": 0,
+      "question": "How would you rate the level of sensitivity classification of your data?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 1,
+      "question": "How accurate is the data classification in reflecting its sensitivity and access requirements?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 2,
+      "question": "On a scale of 1 to 5, how clear are the classification levels used for data?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 3,
+      "question": "How would you rate the consistency of data classification across systems?",
+      "options": [1, 2, 3, 4, 5]
+    },
+    {
+      "id": 4,
+      "question": "On a scale from 1 to 5, how well is the data classified for security purposes?",
+      "options": [1, 2, 3, 4, 5]
+    }
+  ]
+}
