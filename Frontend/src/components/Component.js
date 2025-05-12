@@ -1,32 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import SubComponent from './SubComponent';
 
-const Component = ({ componentTitle, jsonFile, answers, setAnswers, subheading, setSubheading, missingQuestionRef }) => {
+const Component = ({ 
+  componentTitle, 
+  jsonFile, 
+  answers, 
+  setAnswers, 
+  subheading, 
+  setSubheading,
+  missingQuestionRef
+}) => {
   const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const questionsModule = await import(`../assets/${jsonFile}.json`);
-        
-        if (questionsModule.default && Array.isArray(questionsModule.default.questions)) {
-          setQuestions(questionsModule.default.questions);
-          setSubheading(questionsModule.default.subheading || '');  // Set subheading dynamically
-        } else {
-          console.error('Invalid JSON structure: "questions" array missing');
-        }
-      } catch (error) {
-        console.error('Error loading questions:', error);
+        setLoading(true);
+        const module = await import(`../assets/${jsonFile}.json`);
+        setQuestions(module.questions || []);
+        setError(null);
+      } catch (err) {
+        console.error(`Error loading questions for ${jsonFile}:`, err);
+        setError(`Failed to load questions for ${jsonFile}`);
+        setQuestions([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadQuestions();
-  }, [jsonFile, setSubheading]);
+    if (jsonFile) {
+      loadQuestions();
+    }
+  }, [jsonFile]);
 
-  const handleAnswerChange = (questionId, answer) => {
+  const handleAnswerChange = (questionId, value) => {
+    const key = `${componentTitle}_${jsonFile}_${questionId}`;
     setAnswers(prev => ({
       ...prev,
-      [`${componentTitle}_${subheading}_${questionId}`]: answer // Store answer using the composite key
+      [key]: value
     }));
   };
 
@@ -34,36 +47,43 @@ const Component = ({ componentTitle, jsonFile, answers, setAnswers, subheading, 
     setAnswers(prev => {
       const newAnswers = { ...prev };
       Object.keys(newAnswers).forEach(key => {
-        if (key.startsWith(`${componentTitle}_${subheading}_`)) {
-          delete newAnswers[key];  // Reset answers for this component and subheading
+        if (key.startsWith(`${componentTitle}_${jsonFile}_`)) {
+          delete newAnswers[key];
         }
       });
       return newAnswers;
     });
   };
 
+  if (loading) {
+    return <div className="loading-spinner">Loading questions...</div>;
+  }
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
+
   return (
-    <div className="component-questions">
-      {questions.length > 0 ? (
-        <>
-          {questions.map((question, index) => (
-            <SubComponent
-              key={index}
-              question={question}
-              questionId={index}
-              onAnswerChange={handleAnswerChange}
-              selectedAnswer={answers[`${componentTitle}_${subheading}_${index}`] || ""}  // Access answer with composite key
-              isMissing={missingQuestionRef && 
-                missingQuestionRef.subcategory === jsonFile && 
-                missingQuestionRef.questionId === index}
-              componentId={`question_${missingQuestionRef?.config || ''}_${jsonFile}_${index}`}
-            />
-          ))}
-          <button onClick={handleReset} className="reset-button">Reset All</button>
-        </>
-      ) : (
-        <p>Loading questions...</p>
-      )}
+    <div className="questions-container">
+      {questions.map((question) => {
+        const isHighlighted = missingQuestionRef && 
+                             missingQuestionRef.config === componentTitle &&
+                             missingQuestionRef.subcategory === jsonFile &&
+                             missingQuestionRef.questionId === question.id;
+        
+        return (
+          <SubComponent
+            key={question.id}
+            question={question}
+            componentTitle={componentTitle}
+            jsonFile={jsonFile}
+            answers={answers}
+            handleAnswerChange={handleAnswerChange}
+            isHighlighted={isHighlighted}
+          />
+        );
+      })}
+      <button onClick={handleReset} className="reset-button">Reset Answers</button>
     </div>
   );
 };

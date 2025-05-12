@@ -5,6 +5,7 @@ import Configs from './Configs';
 import * as XLSX from 'xlsx';
 import Component from '../components/Component';
 import ReviewAnswersModal from '../modals/ReviewAnswersModal';
+import { submitSurvey, exportSurveyData } from '../services/api';
 
 const HomePage = () => {
   const [openComponent, setOpenComponent] = useState(null);
@@ -13,18 +14,11 @@ const HomePage = () => {
   const [answers, setAnswers] = useState({});
   const [subheading, setSubheading] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [savedAnswers, setSavedAnswers] = useState({});
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewData, setReviewData] = useState([]);
   const [missingQuestionRef, setMissingQuestionRef] = useState(null);
-
-  useEffect(() => {
-    const allSubmissions = localStorage.getItem('all_submissions');
-    if (allSubmissions) {
-      const parsed = JSON.parse(allSubmissions);
-      setSavedAnswers(parsed);
-    }
-  }, []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const handleComponentClick = (componentId) => {
     setOpenComponent(prevOpen => prevOpen === componentId ? null : componentId);
@@ -52,6 +46,7 @@ const HomePage = () => {
   };
 
   const handleSubmit = async () => {
+    setSubmitError(null);
     const missingAnswers = [];
     const reviewAnswers = [];
     let firstMissingFound = false;
@@ -131,8 +126,7 @@ const HomePage = () => {
             setMissingQuestionRef(null);
           }, 3000);
         }
-        else 
-        {
+        else {
           setMissingQuestionRef(null);
         }
       }, 300);
@@ -149,61 +143,43 @@ const HomePage = () => {
     setIsModalOpen(true);
   };
 
-  const handleEmployeeIdSubmit = (userEmpId) => {
-    const allSubmissions = JSON.parse(localStorage.getItem('all_submissions') || '{}');
-
-    // if (allSubmissions[userEmpId]) {
-    //   alert('You have already submitted the survey. Each employee is allowed to submit only once.');
-    //   return;
-    // }
- 
-    const submissionData = {
-      empId: userEmpId,
-      answers
-    };
-
-    // Store the new submission
-    allSubmissions[userEmpId] = submissionData;
-    localStorage.setItem('all_submissions', JSON.stringify(allSubmissions));
-    localStorage.setItem('submission_data', JSON.stringify(submissionData));
-
-    setSavedAnswers(answers);
-    setEmpId(userEmpId);
-
-    alert('Submission successful!');
-
-    const data = [
-      ['Employee ID', 'Category', 'Subcategory', 'Question', 'Answer']
-    ];
-
-    const collectAnswers = async () => {
-      for (const config of Configs) {
-        for (const subcategory of config.subcategories) {
-          const jsonFile = subcategory.title;
-
-          try {
-            const module = await import(`../assets/${jsonFile}.json`);
-            const questions = module.questions;
-
-            questions.forEach(question => {
-              const answerKey = `${config.title}_${subcategory.title}_${question.id}`;
-              const questionAnswer = answers[answerKey] || 'No answer';
-              data.push([userEmpId, config.title, subcategory.title, question.question, questionAnswer]);
-            });
-          } catch (err) {
-            console.error(`Error loading the JSON file for ${jsonFile}:`, err);
-          }
-        }
+  const handleEmployeeIdSubmit = async (userEmpId) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    
+    try {
+      // Submit data to the backend API
+      await submitSurvey(userEmpId, answers);
+      
+      setEmpId(userEmpId);
+      
+      // Show success message
+      alert('Submission successful!');
+      
+      // Export data to Excel
+      try {
+        const exportData = await exportSurveyData(userEmpId);
+        
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses');
+        XLSX.writeFile(wb, `survey_responses_${userEmpId}.xlsx`);
+      } catch (exportError) {
+        console.error('Error exporting data:', exportError);
+        // Still consider submission successful even if export fails
       }
-
-      const ws = XLSX.utils.aoa_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses');
-      XLSX.writeFile(wb, `survey_responses_${userEmpId}.xlsx`);
-    };
-
-    collectAnswers();
-    setAnswers({});
+      
+      // Reset form after successful submission
+      setAnswers({});
+      
+    } catch (error) {
+      console.error('Error submitting data:', error);
+      setSubmitError(error.message || 'Failed to submit survey. Please try again.');
+      alert(`Error: ${error.message || 'Failed to submit survey. Please try again.'}`);
+    } finally {
+      setIsSubmitting(false);
+      setIsModalOpen(false);
+    }
   };
 
   return (
@@ -250,14 +226,21 @@ const HomePage = () => {
         </div>
       ))}
       
-      <button className="submit-button" onClick={handleSubmit}>
-        <strong>Submit</strong>
+      <button 
+        className="submit-button" 
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+      >
+        <strong>{isSubmitting ? 'Submitting...' : 'Submit'}</strong>
       </button>
+
+      {submitError && <p className="error-message">{submitError}</p>}
 
       <EmployeeIdModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleEmployeeIdSubmit}
+        isSubmitting={isSubmitting}
       />
 
       <ReviewAnswersModal

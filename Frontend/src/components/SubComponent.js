@@ -1,51 +1,35 @@
 import React from 'react';
 
-const SubComponent = ({ question, questionId, onAnswerChange, selectedAnswer, isMissing, componentId }) => {
+const SubComponent = ({ 
+  question, 
+  componentTitle, 
+  jsonFile, 
+  answers, 
+  handleAnswerChange, 
+  isHighlighted 
+}) => {
+  const answerKey = `${componentTitle}_${jsonFile}_${question.id}`;
+  
   return (
     <div 
-      id={componentId || `question_${questionId}`}
-      className={`subcomponent ${isMissing ? 'highlight-missing' : ''}`}
+      id={`question_${componentTitle}_${jsonFile}_${question.id}`}
+      className={`question-item ${isHighlighted ? 'highlight-missing' : ''}`}
     >
-      <p className="subcomponent-question">
-        {question.question}
-        <span className="required-asterisk"> *</span>
-      </p>
-      <div className="radio-group">
-        {question.options && question.options.map((option, index) => (
-          <label key={index}>
+      <div className="question-text">{question.question}</div>
+      
+      <div className="radio-options">
+        {question.options.map((option, index) => (
+          <label key={index} className="radio-label">
             <input
               type="radio"
-              name={`question-${question.subheading}-${question.id}`}
+              name={answerKey}
               value={option}
-              checked={selectedAnswer === option}
-              onChange={() => onAnswerChange(questionId, option)}
-              required={index === 0}
+              checked={answers[answerKey] === option}
+              onChange={() => handleAnswerChange(question.id, option)}
             />
             {option}
           </label>
         ))}
-        
-        {question.type === 'text' && (
-          <textarea
-            value={selectedAnswer || ''}
-            onChange={(e) => onAnswerChange(questionId, e.target.value)}
-            placeholder="Enter your answer here..."
-            rows={3}
-            className="text-input"
-            required
-          />
-        )}
-        
-        {question.type === 'number' && (
-          <input
-            type="number"
-            value={selectedAnswer || ''}
-            onChange={(e) => onAnswerChange(questionId, e.target.value)}
-            placeholder="Enter a number..."
-            className="number-input"
-            required
-          />
-        )}
       </div>
     </div>
   );
